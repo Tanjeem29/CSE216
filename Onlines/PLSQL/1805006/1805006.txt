@@ -1,0 +1,72 @@
+create or replace Procedure Assign IS
+		
+		isinlimit number;
+		flag number;
+		limcount number;
+		isinEmpDept number;
+BEGIN
+		For E in (Select * from Employees order by HIRE_DATE)
+		LOOP
+				flag := 0;
+				FOR D in (SELECT * from OPTIONS where E.EMPLOYEE_ID = OPTIONS.EMPLOYEE_ID order by choice)
+				LOOP
+						select count(*) into isinlimit from Limits L where D.DEPARTMENT_ID = L.DEPARTMENT_ID;
+						select count(*) into isinempdept from Employee_department ED where ED.Employee_ID = E.Employee_ID;
+						IF isinempdept>0 THEN
+							Exit when (TRUE);
+						END IF;
+						IF ( isinlimit = 0) THEN
+								INSERt Into EMPLOYEE_DEPARTMENT
+								(EMPLOYEE_ID, DEPARTMENT_ID)
+								VALUES(E.EMPLOYEE_ID, D.DEPARTMENT_ID);
+								flag := 1;
+						
+						ELSE 
+								Select limit into limcount from Limits L where D.DEPARTMENT_ID = L.DEPARTMENT_ID;
+								IF (limcount > 0) THEN
+										UPDATE LIMITS L2
+										SET limit = limit - 1
+										where L2.DEPARTMENT_ID = D.DEPARTMENT_ID;
+										
+										INSERt Into EMPLOYEE_DEPARTMENT
+										(EMPLOYEE_ID, DEPARTMENT_ID)
+										VALUES(E.EMPLOYEE_ID, D.DEPARTMENT_ID);
+								flag := 1;
+								END IF;
+						END IF;
+						EXIT WHEN (flag = 1);
+						
+				
+				END LOOP;
+		END LOOP;
+END;
+/
+
+Create or replace trigger SalAdd
+before INSERT
+on EMPLOYEE_DEPARTMENT
+for each row 
+DECLARE
+		isdepsal number;
+		sal number;
+BEGIN
+		Select count(*) into isdepsal from DEPARTMENT_SALARY DS where :NEW.DEpartment_ID = DS.DEPARTMENT_ID;
+		Select E.salary into sal from EMPLOYEES E where :NEW.Employee_ID = E.Employee_ID;
+		if(isdepsal = 0) THEN
+				Insert into DEPARTMENT_SAlary 
+				(Department_ID, TOTAL_SALARY)
+				VALUES
+				(:NEW.DEpartment_ID, sal);
+		ELSE
+				Update DEPARTMENT_SAlary DS
+				SET DS.TOTAL_SALARY = DS.TOTAL_SALARY + sal
+				where :NEW.DEpartment_ID = DS.Department_ID;
+		END IF;
+END;
+/
+
+
+BEGIN
+	Assign;
+END;
+/

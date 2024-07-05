@@ -1,0 +1,64 @@
+
+
+
+---1
+select d1.DEPARTMENT_name DEPARTMENT_NAME, count (E1.MANAGER_ID) MANAGER_COUNT
+from employees e1 join DEPARTMENTS d1
+on (e1.department_id = d1.department_ID)
+where e1.DEPARTMENT_ID is not null
+GROUP BY d1.DEPARTMENT_name
+order by MANAGER_COUNT DESC;
+
+
+
+
+---5
+select count(t2.id) RANK, t1.id DEPARTMENT_ID, t1.c MANAGER_COUNT
+from
+(select E1.DEPARTMENT_ID id, count ( E1.MANAGER_ID) c
+from employees e1
+where DEPARTMENT_ID is not null
+GROUP BY E1.DEPARTMENT_ID) t1
+LEFT OUTER JOIN
+(select E2.DEPARTMENT_ID id, count ( E2.MANAGER_ID) c
+from employees e2
+where DEPARTMENT_ID is not null
+GROUP BY E2.DEPARTMENT_ID) t2
+on(t1.c<t2.c)
+GROUP BY t1.id, t1.c
+order by RANK;
+
+
+
+
+
+
+---3
+select t1.EMPLOYEE_NAME
+(SELECT E1.Manager_ID, E1.FIRST_NAME || E1.LAST_NAME as EMPLOYEE_NAME, C.country_name as COUNTRY_NAME
+FROM EMPLOYEES E1 JOIN DEPARTMENTS D 
+on(E1.DEPARTMENT_ID = D.DEPARTMENT_ID)
+JOIN LOCATIONS L
+on(D.Location_ID = L.location_ID)
+Join 
+Countries C
+on(C.Country_ID = L.country_ID)) t1
+
+join 
+
+(SELECT E1.FIRST_NAME || E1.LAST_NAME as EMPLOYEE_NAME, C.country_name as COUNTRY_NAME
+FROM EMPLOYEES E1 JOIN DEPARTMENTS D 
+on(E1.DEPARTMENT_ID = D.DEPARTMENT_ID)
+JOIN LOCATIONS L
+on(D.Location_ID = L.location_ID)
+Join 
+Countries C
+on(C.Country_ID = L.country_ID)) t2
+on(t1.manager_ID = t2. employee_ID AND T1.country_name <> T2.Country_name);
+
+---2
+select E1.department_ID, E1.FIRST_NAME, TO_CHAR(E1.Hire_DATE)
+from EMPLOYEES E1 JOIN eMPLOYEES E2
+ON e1.HIRE_DATE <E2.HIRE_DATE
+GROUP BY E1.department_ID, E1.Hire_DATE, E1.FIRST_NAME
+HAVING (COUNT (E2.EMPLOYEE_id)>);
