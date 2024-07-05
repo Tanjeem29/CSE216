@@ -1,2 +1,2 @@
 # CSE216
-Databae
+Database
